@@ -2,12 +2,6 @@ const crypto = require('crypto');
 const getRawBody = require('raw-body');
 const { logPaymentToSheet } = require('../lib/sheets');
 
-module.exports.config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -75,4 +69,13 @@ module.exports = async (req, res) => {
     console.error('webhook processing error:', err);
     return res.status(200).json({ ok: true, warning: 'logged with errors' });
   }
+};
+
+// IMPORTANT: this must come AFTER the handler is assigned to module.exports,
+// otherwise reassigning module.exports wipes it out and Razorpay signature
+// verification breaks (bodyParser stays on, rawBody is empty).
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
 };
