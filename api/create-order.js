@@ -53,6 +53,20 @@ module.exports = async (req, res) => {
     });
   } catch (err) {
     console.error('create-order error:', err);
-    return res.status(500).json({ error: 'Could not create order' });
+    // TEMPORARY DIAGNOSTIC - reveals the real reason Razorpay rejected the order.
+    // Remove this extra detail once the issue is fixed.
+    var razorpayMsg =
+      (err && err.error && err.error.description) ? err.error.description :
+      (err && err.message) ? err.message : String(err);
+    var razorpayCode =
+      (err && err.error && err.error.code) ? err.error.code :
+      (err && err.statusCode) ? err.statusCode : null;
+    return res.status(500).json({
+      error: 'Could not create order',
+      razorpaySays: razorpayMsg,
+      razorpayCode: razorpayCode,
+      keyIdSeen: process.env.RAZORPAY_KEY_ID || '(missing)',
+      keySecretLength: process.env.RAZORPAY_KEY_SECRET ? process.env.RAZORPAY_KEY_SECRET.length : 0,
+    });
   }
 };
