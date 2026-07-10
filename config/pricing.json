@@ -1,0 +1,22 @@
+{
+  "pranav-kay": {
+    "mentorName": "Pranav Kay",
+    "plans": {
+      "strategy-session": {
+        "label": "Strategy Session",
+        "amount": 1750,
+        "calls": 1
+      },
+      "growth": {
+        "label": "Growth",
+        "amount": 7499,
+        "calls": 5
+      },
+      "founder-advisory": {
+        "label": "Founder Advisory",
+        "amount": 29999,
+        "calls": "Unlimited"
+      }
+    }
+  }
+}
