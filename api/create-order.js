@@ -27,10 +27,13 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Unknown mentor or plan' });
     }
 
+    // Razorpay caps receipt at 40 chars, so keep it short and unique.
+    const receipt = `r_${Date.now()}`;
+
     const order = await razorpay.orders.create({
       amount: planDetails.amount * 100,
       currency: 'INR',
-      receipt: `${mentor}_${plan}_${Date.now()}`,
+      receipt: receipt,
       notes: {
         mentor,
         plan,
@@ -53,8 +56,6 @@ module.exports = async (req, res) => {
     });
   } catch (err) {
     console.error('create-order error:', err);
-    // TEMPORARY DIAGNOSTIC - reveals the real reason Razorpay rejected the order.
-    // Remove this extra detail once the issue is fixed.
     var razorpayMsg =
       (err && err.error && err.error.description) ? err.error.description :
       (err && err.message) ? err.message : String(err);
