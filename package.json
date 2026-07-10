@@ -1,0 +1,14 @@
+{
+  "name": "18startup-payment-system",
+  "version": "1.0.0",
+  "description": "Single dynamic payment page backend for 18startup mentor bookings (Razorpay + Google Sheets)",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "razorpay": "^2.9.4",
+    "googleapis": "^140.0.1",
+    "raw-body": "^2.5.2"
+  }
+}
