@@ -6,15 +6,6 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Turn a slug like "pranav-kay" into a display name like "Pranav Kay".
-function titleCase(slug) {
-  return String(slug || '')
-    .split('-')
-    .filter(Boolean)
-    .map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); })
-    .join(' ');
-}
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -24,47 +15,33 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { mentor, plan, amount, name, email, phone } = req.body;
+    const { mentor, plan, name, email, phone } = req.body;
 
     if (!mentor || !plan) {
       return res.status(400).json({ error: 'mentor and plan are required' });
     }
 
-    let finalAmount = null;
-    let mentorName;
-    let planLabel;
-    let calls = null;
+    // SECURITY: the price is ALWAYS looked up here on the server.
+    // Any "amount" sent from the browser or the URL is ignored completely,
+    // so a customer cannot change what they are charged.
+    const planDetails = getPlanDetails(mentor, plan);
 
-    // 1) Price sent from the Webflow button (primary).
-    const amt = parseInt(amount, 10);
-    if (!isNaN(amt) && amt >= 1) {
-      finalAmount = amt;
-      mentorName = titleCase(mentor);
-      planLabel = titleCase(plan);
-    } else {
-      // 2) Fallback: look up the backend price list if no amount was passed.
-      const planDetails = getPlanDetails(mentor, plan);
-      if (!planDetails) {
-        return res.status(400).json({ error: 'Price is missing for this booking.' });
-      }
-      finalAmount = planDetails.amount;
-      mentorName = planDetails.mentorName;
-      planLabel = planDetails.planLabel;
-      calls = planDetails.calls;
+    if (!planDetails) {
+      return res.status(404).json({ error: 'Unknown mentor or plan' });
     }
 
     const receipt = `r_${Date.now()}`;
 
     const order = await razorpay.orders.create({
-      amount: finalAmount * 100,
+      amount: planDetails.amount * 100,
       currency: 'INR',
       receipt: receipt,
       notes: {
         mentor,
         plan,
-        mentorName,
-        planLabel,
-        amount: finalAmount,
+        mentorName: planDetails.mentorName,
+        planLabel: planDetails.planLabel,
+        amount: planDetails.amount,
         name: name || '',
         email: email || '',
         phone: phone || '',
@@ -75,9 +52,9 @@ module.exports = async (req, res) => {
       order_id: order.id,
       amount: order.amount,
       currency: order.currency,
-      mentorName,
-      planLabel,
-      calls,
+      mentorName: planDetails.mentorName,
+      planLabel: planDetails.planLabel,
+      calls: planDetails.calls,
       key_id: process.env.RAZORPAY_KEY_ID,
     });
   } catch (err) {

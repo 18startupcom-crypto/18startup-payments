@@ -9,12 +9,12 @@
       },
       "growth": {
         "label": "Growth",
-        "amount": 8499,
+        "amount": 7499,
         "calls": 5
       },
       "founder-advisory": {
         "label": "Founder Advisory",
-        "amount": 29999,
+        "amount": 59999,
         "calls": "Unlimited"
       }
     }
